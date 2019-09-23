@@ -5,7 +5,8 @@ import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.world.World;
 import net.andrasia.kiryu144.andrasiaautomation.structure.StructureParser;
-import net.andrasia.kiryu144.andrasiaautomation.structure.StructureRegistry;
+import net.andrasia.kiryu144.andrasiaautomation.structure.Structures;
+import net.andrasia.kiryu144.andrasiaautomation.structure.WorldPlacedStructuresRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -19,18 +20,25 @@ import java.io.IOException;
 
 public class AndrasiaAutomation extends JavaPlugin {
     public static WorldEditPlugin worldEdit;
-    public static Material PRIMARY_BLOCK = Material.BARREL;
+    public static Material PRIMARY_BLOCK = Material.EMERALD_BLOCK;
 
-    public static StructureRegistry structureRegistry;
+    public static Structures structures;
+    public static WorldPlacedStructuresRegistry worldPlacedStructures;
 
     @Override
     public void onEnable() {
         worldEdit = (WorldEditPlugin) Bukkit.getServer().getPluginManager().getPlugin("WorldEdit");
-        structureRegistry = new StructureRegistry();
+        structures = new Structures();
+        worldPlacedStructures = new WorldPlacedStructuresRegistry();
 
-        Bukkit.getPluginManager().registerEvents(structureRegistry, this);
+        Bukkit.getPluginManager().registerEvents(structures, this);
+        Bukkit.getPluginManager().registerEvents(worldPlacedStructures, this);
 
         loadConfig();
+
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
+            worldPlacedStructures.tickAll();
+        }, 1, 1);
     }
 
     public void loadConfig() {
@@ -39,7 +47,7 @@ public class AndrasiaAutomation extends JavaPlugin {
         for(String structureName : getConfig().getStringList("structures")){
             File file = new File(getDataFolder() + "/structures/" + structureName + ".yml");
             try {
-                structureRegistry.add(StructureParser.LoadFromConfig(file));
+                structures.add(StructureParser.LoadFromConfig(file));
                 getLogger().info("Registered structure '" + structureName + "'");
             } catch (Exception e) {
                 getLogger().severe("Unable to load structure '" + structureName + "'");
@@ -53,7 +61,7 @@ public class AndrasiaAutomation extends JavaPlugin {
         if(command.getName().equalsIgnoreCase("automation")){
             if(args.length == 1){
                 if(args[0].equalsIgnoreCase("reload")){
-                    structureRegistry.clear();
+                    structures.clear();
                     loadConfig();
                     sender.sendMessage("§aReloaded.");
                 }
@@ -78,7 +86,7 @@ public class AndrasiaAutomation extends JavaPlugin {
                     try {
                         StructureParser.Paste(StructureParser.LoadFromConfig(file), player.getLocation().subtract(0, 1, 0));
                         sender.sendMessage("§aLoaded.");
-                    } catch (IOException | InvalidConfigurationException e) {
+                    } catch (IOException | InvalidConfigurationException | ClassNotFoundException e) {
                         sender.sendMessage("§cUnable to load file!");
                     }
                     return true;

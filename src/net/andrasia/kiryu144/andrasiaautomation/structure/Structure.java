@@ -1,17 +1,24 @@
 package net.andrasia.kiryu144.andrasiaautomation.structure;
 
+import net.andrasia.kiryu144.andrasiaautomation.structure.controller.StructureController;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.util.Vector;
 
 public class Structure {
     protected StructureBlock[] data;
     protected Vector size;
     protected Vector centerOffset;
+    protected String id;
     protected String name;
+    protected Class<? extends StructureController> structureControllerClass;
+    protected ConfigurationSection typeData;
 
-    public Structure(Vector size, Vector centerOffset, String name){
+    public Structure(String id, Vector size, Vector centerOffset, String name){
+        this.id = id;
         this.size = size;
         this.centerOffset = (centerOffset != null) ? centerOffset : new Vector(0, 0, 0);
         this.name = (name != null) ? name : "unnamed";
@@ -86,6 +93,30 @@ public class Structure {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public Class<? extends StructureController> getStructureControllerClass() {
+        return structureControllerClass;
+    }
+
+    public void setStructureControllerClass(Class<? extends StructureController> structureControllerClass) {
+        this.structureControllerClass = structureControllerClass;
+    }
+
+    public ConfigurationSection getTypeData() {
+        return typeData;
+    }
+
+    public void setTypeData(ConfigurationSection typeData) {
+        this.typeData = typeData;
     }
 }
 

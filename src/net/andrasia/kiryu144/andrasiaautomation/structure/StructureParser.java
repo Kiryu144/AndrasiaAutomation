@@ -2,9 +2,11 @@ package net.andrasia.kiryu144.andrasiaautomation.structure;
 
 import com.sk89q.worldedit.regions.Region;
 import net.andrasia.kiryu144.andrasiaautomation.AndrasiaAutomation;
+import net.andrasia.kiryu144.andrasiaautomation.structure.controller.StructureController;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -19,7 +21,7 @@ import java.util.List;
 public class StructureParser {
 
     public static Structure FromRegion(Player player, Region region){
-        Structure structure = new Structure(new Vector(region.getWidth(), region.getHeight(), region.getLength()), null, null);
+        Structure structure = new Structure("undefined", new Vector(region.getWidth(), region.getHeight(), region.getLength()), null, null);
         for(int x = region.getMinimumPoint().getX(); x <= region.getMaximumPoint().getX(); ++x){
             for(int y = region.getMinimumPoint().getY(); y <= region.getMaximumPoint().getY(); ++y){
                 for(int z = region.getMinimumPoint().getZ(); z <= region.getMaximumPoint().getZ(); ++z){
@@ -85,7 +87,7 @@ public class StructureParser {
         return new Vector(Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]));
     }
 
-    public static Structure LoadFromConfig(File file) throws IOException, InvalidConfigurationException {
+    public static Structure LoadFromConfig(File file) throws IOException, InvalidConfigurationException, ClassNotFoundException {
         YamlConfiguration yamlConfiguration = new YamlConfiguration();
         yamlConfiguration.load(file);
 
@@ -108,7 +110,16 @@ public class StructureParser {
             }
         }
 
-        Structure structure = new Structure(size, DeserializeVector(yamlConfiguration.getString("offset", "0;0;0")), yamlConfiguration.getString("name"));
+        Structure structure = new Structure(yamlConfiguration.getString("id", "undefined"), size, DeserializeVector(yamlConfiguration.getString("offset", "0;0;0")), yamlConfiguration.getString("name"));
+        String type = yamlConfiguration.getString("type", "undefined");
+        if(type != null && !type.equals("undefined")){
+            structure.setStructureControllerClass(Class.forName(StructureParser.class.getPackage().getName() + ".controller." + type).asSubclass(StructureController.class));
+        }
+        ConfigurationSection typeData = yamlConfiguration.getConfigurationSection("typedata");
+        if(typeData != null){
+            structure.setTypeData(typeData);
+        }
+
         for(Vector vec : data.keySet()){
             structure.set(vec, data.get(vec));
         }
