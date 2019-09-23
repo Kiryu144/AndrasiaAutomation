@@ -19,7 +19,7 @@ import java.util.List;
 public class StructureParser {
 
     public static Structure FromRegion(Player player, Region region){
-        Structure structure = new Structure(new Vector(region.getWidth(), region.getHeight(), region.getLength()), null);
+        Structure structure = new Structure(new Vector(region.getWidth(), region.getHeight(), region.getLength()), null, null);
         for(int x = region.getMinimumPoint().getX(); x <= region.getMaximumPoint().getX(); ++x){
             for(int y = region.getMinimumPoint().getY(); y <= region.getMaximumPoint().getY(); ++y){
                 for(int z = region.getMinimumPoint().getZ(); z <= region.getMaximumPoint().getZ(); ++z){
@@ -108,7 +108,7 @@ public class StructureParser {
             }
         }
 
-        Structure structure = new Structure(size, DeserializeVector(yamlConfiguration.getString("offset", "0;0;0")));
+        Structure structure = new Structure(size, DeserializeVector(yamlConfiguration.getString("offset", "0;0;0")), yamlConfiguration.getString("name"));
         for(Vector vec : data.keySet()){
             structure.set(vec, data.get(vec));
         }

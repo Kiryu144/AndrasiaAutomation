@@ -9,10 +9,12 @@ public class Structure {
     protected StructureBlock[] data;
     protected Vector size;
     protected Vector centerOffset;
+    protected String name;
 
-    public Structure(Vector size, Vector centerOffset){
+    public Structure(Vector size, Vector centerOffset, String name){
         this.size = size;
         this.centerOffset = (centerOffset != null) ? centerOffset : new Vector(0, 0, 0);
+        this.name = (name != null) ? name : "unnamed";
 
         data = new StructureBlock[size.getBlockX() * size.getBlockY() * size.getBlockZ()];
     }
@@ -37,13 +39,14 @@ public class Structure {
     }
 
     public Vector findFirstNonMatchingBlock(Location location){
-        for(int x = location.getBlockX(); x < size.getBlockX(); ++x){
-            for(int y = location.getBlockY(); y < size.getBlockY(); ++y){
-                for(int z = location.getBlockZ(); z < size.getBlockZ(); ++z){
+        for(int x = location.getBlockX(); x < location.getBlockX() + size.getBlockX(); ++x){
+            for(int y = location.getBlockY(); y < location.getBlockY() + size.getBlockY(); ++y){
+                for(int z = location.getBlockZ(); z < location.getBlockZ() + size.getBlockZ(); ++z){
                     Vector position = new Vector(x, y, z);
-                    Location loc = location.clone().add(position);
-                    Material atLocation = loc.getBlock().getType();
-                    StructureBlock atStructure = get(position);
+                    Location worldLocation = new Location(location.getWorld(), x, y, z);
+                    Material atLocation = worldLocation.getBlock().getType();
+                    Location localLocation = worldLocation.clone().subtract(location);
+                    StructureBlock atStructure = get(localLocation.toVector());
 
                     if(atStructure == null){
                         if(!(atLocation.equals(Material.AIR) || atLocation.equals(Material.CAVE_AIR) || atLocation.equals(Material.VOID_AIR))){
@@ -75,6 +78,14 @@ public class Structure {
 
     public void setCenterOffset(Vector centerOffset) {
         this.centerOffset = centerOffset;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
 
