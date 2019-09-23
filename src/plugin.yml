@@ -1,0 +1,7 @@
+name: AndrasiaAutomation
+version: 1.0
+main: net.andrasia.kiryu144.andrasiaautomation.AndrasiaAutomation
+depend: [WorldEdit]
+api-version: 1.13
+commands:
+  automation:
