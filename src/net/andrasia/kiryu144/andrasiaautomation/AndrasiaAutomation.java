@@ -45,7 +45,7 @@ public class AndrasiaAutomation extends JavaPlugin {
                     }
                 }else if(args[0].equalsIgnoreCase("paste")){
                     try {
-                        StructureParser.Paste(StructureParser.LoadFromConfig(file), player.getLocation());
+                        StructureParser.Paste(StructureParser.LoadFromConfig(file), player.getLocation().subtract(0, 1, 0));
                         sender.sendMessage("§aLoaded.");
                     } catch (IOException | InvalidConfigurationException e) {
                         sender.sendMessage("§cUnable to load file!");

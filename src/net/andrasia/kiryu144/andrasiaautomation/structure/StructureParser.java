@@ -41,7 +41,7 @@ public class StructureParser {
         for(int x = 0; x < structure.getSize().getBlockX(); ++x) {
             for (int y = 0; y < structure.getSize().getBlockY(); ++y) {
                 for (int z = 0; z < structure.getSize().getBlockZ(); ++z) {
-                    Location loc = location.clone().add(x, y, z).add(structure.getCenterOffset());
+                    Location loc = location.clone().add(x, y, z).subtract(structure.getCenterOffset());
                     StructureBlock structureBlock = structure.get(new Vector(x, y, z));
                     if(structureBlock != null && structureBlock.getMaterials().size() > 0){
                         loc.getBlock().setType(structureBlock.getMaterials().get(0));
