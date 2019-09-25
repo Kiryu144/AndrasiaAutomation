@@ -2,11 +2,13 @@ package net.andrasia.kiryu144.andrasiaautomation.structure;
 
 import com.sk89q.worldedit.regions.Region;
 import net.andrasia.kiryu144.andrasiaautomation.AndrasiaAutomation;
-import net.andrasia.kiryu144.andrasiaautomation.structure.controller.StructureController;
+import net.andrasia.kiryu144.andrasiaautomation.structure.block.SingleStructureBlock;
+import net.andrasia.kiryu144.andrasiaautomation.structure.block.StructureBlock;
+import net.andrasia.kiryu144.andrasiaautomation.util.FixedSize3DArray;
+import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -14,9 +16,6 @@ import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 public class StructureParser {
 
@@ -31,7 +30,7 @@ public class StructureParser {
                         if(location.getBlock().getType().equals(AndrasiaAutomation.PRIMARY_BLOCK)){
                             structure.setCenterOffset(offset);
                         }
-                        structure.set(offset, new SingleStructureBlock(location.getBlock().getType()));
+                        structure.getBlocks().set(offset, new SingleStructureBlock(location.getBlock().getType()));
                     }
                 }
             }
@@ -40,92 +39,27 @@ public class StructureParser {
     }
 
     public static void Paste(Structure structure, Location location){
-        for(int x = 0; x < structure.getSize().getBlockX(); ++x) {
-            for (int y = 0; y < structure.getSize().getBlockY(); ++y) {
-                for (int z = 0; z < structure.getSize().getBlockZ(); ++z) {
-                    Location loc = location.clone().add(x, y, z).subtract(structure.getCenterOffset());
-                    StructureBlock structureBlock = structure.get(new Vector(x, y, z));
-                    if(structureBlock != null && structureBlock.getMaterials().size() > 0){
-                        loc.getBlock().setType(structureBlock.getMaterials().get(0));
-                    }
-                }
+        Validate.notNull(structure, "Cannot paste null");
+        Validate.notNull(structure.getBlocks(), "Structure does not contain blocks");
+        for(FixedSize3DArray<StructureBlock>.Iterator it = structure.blocks.iterator(); it.hasNext(); ){
+            StructureBlock structureBlock = it.next();
+            if(structureBlock != null) {
+                Vector   localPosition = it.toVector();
+                Location worldLocation = location.clone().add(localPosition).subtract(structure.getCenterOffset());
+                worldLocation.getBlock().setType(structureBlock.getMaterials().get(0));
             }
         }
     }
 
     public static void SaveToConfig(Structure structure, File file) throws IOException {
-        HashMap<String, List<String>> data = new HashMap<>();
-        for(int x = 0; x < structure.getSize().getBlockX(); ++x){
-            for(int y = 0; y < structure.getSize().getBlockY(); ++y){
-                for(int z = 0; z < structure.getSize().getBlockZ(); ++z){
-                    String formattedVector = SerializeVector(new Vector(x, y, z));
-                    if(structure.get(new Vector(x, y, z)) != null){
-                        List<String> matList = new ArrayList<>();
-                        for(Material material : structure.get(new Vector(x, y, z)).getMaterials()){
-                            matList.add(material.toString());
-                        }
-                        data.put(formattedVector, matList);
-                    }
-                }
-            }
-        }
-
         YamlConfiguration yamlConfiguration = new YamlConfiguration();
-        yamlConfiguration.set("name", "unnamed");
-        yamlConfiguration.set("type", "undefined");
-        yamlConfiguration.set("offset", SerializeVector(structure.getCenterOffset()));
-        yamlConfiguration.set("data", data);
+        yamlConfiguration.set("structure", structure);
         yamlConfiguration.save(file);
     }
 
-    public static String SerializeVector(Vector vector){
-        return String.format("%d;%d;%d", vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
-    }
-
-    public static Vector DeserializeVector(String line){
-        String[] args = line.split(";");
-        return new Vector(Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]));
-    }
-
-    public static Structure LoadFromConfig(File file) throws IOException, InvalidConfigurationException, ClassNotFoundException {
+    public static Structure LoadFromConfig(File file) throws IOException, InvalidConfigurationException {
         YamlConfiguration yamlConfiguration = new YamlConfiguration();
         yamlConfiguration.load(file);
-
-        Vector size = new Vector();
-        HashMap<Vector, StructureBlock> data = new HashMap<>();
-        for(String key : yamlConfiguration.getConfigurationSection("data").getKeys(false)){
-            Vector       offset             = DeserializeVector(key);
-            List<String> materialStringList = yamlConfiguration.getStringList("data." + key);
-            size.setX(Math.max(size.getX(), offset.getBlockX()+1));
-            size.setY(Math.max(size.getY(), offset.getBlockY()+1));
-            size.setZ(Math.max(size.getZ(), offset.getBlockZ()+1));
-            if(materialStringList.size() == 1){
-                data.put(offset, new SingleStructureBlock(Material.valueOf(materialStringList.get(0))));
-            }else if(materialStringList.size() > 1){
-                MultiStructureBlock structureBlock = new MultiStructureBlock();
-                for(String matString : materialStringList){
-                    structureBlock.addMaterial(Material.valueOf(matString));
-                }
-                data.put(offset, structureBlock);
-            }
-        }
-
-        Structure structure = new Structure(yamlConfiguration.getString("id", "undefined"), size, DeserializeVector(yamlConfiguration.getString("offset", "0;0;0")), yamlConfiguration.getString("name"));
-        String type = yamlConfiguration.getString("type", "undefined");
-        if(type != null && !type.equals("undefined")){
-            structure.setStructureControllerClass(Class.forName(StructureParser.class.getPackage().getName() + ".controller." + type).asSubclass(StructureController.class));
-        }
-        ConfigurationSection typeData = yamlConfiguration.getConfigurationSection("typedata");
-        if(typeData != null){
-            structure.setTypeData(typeData);
-        }
-
-        for(Vector vec : data.keySet()){
-            structure.set(vec, data.get(vec));
-        }
-
-        return structure;
+        return (Structure) yamlConfiguration.get("structure");
     }
-
-
 }

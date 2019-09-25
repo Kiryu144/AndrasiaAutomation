@@ -35,8 +35,8 @@ public class WorldPlacedStructuresRegistry implements Listener {
             Structure structure = AndrasiaAutomation.structures.checkForStructure(e.getBlock());
             if (structure != null) {
                 try {
-                    StructureController controller = structure.getStructureControllerClass().getConstructor(Structure.class, Location.class).newInstance(structure, e.getBlock().getLocation());
-                    controller.loadData(structure.getTypeData());
+                    StructureController controller = structure.getStructureInstanceClass().getConstructor(Structure.class, Location.class).newInstance(structure, e.getBlock().getLocation());
+                    controller.loadData(structure.getStructureInstanceData());
                     structures.put(e.getBlock().getLocation(), controller);
                     structureControllers.add(controller);
 

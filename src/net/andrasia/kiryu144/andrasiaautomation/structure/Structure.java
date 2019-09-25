@@ -1,82 +1,72 @@
 package net.andrasia.kiryu144.andrasiaautomation.structure;
 
+import net.andrasia.kiryu144.andrasiaautomation.structure.block.StructureBlock;
 import net.andrasia.kiryu144.andrasiaautomation.structure.controller.StructureController;
-import org.apache.commons.lang.Validate;
+import net.andrasia.kiryu144.andrasiaautomation.util.FixedSize3DArray;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.util.Vector;
 
-public class Structure {
-    protected StructureBlock[] data;
-    protected Vector size;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+public class Structure implements ConfigurationSerializable {
+    protected FixedSize3DArray<StructureBlock> blocks;
     protected Vector centerOffset;
     protected String id;
     protected String name;
-    protected Class<? extends StructureController> structureControllerClass;
-    protected ConfigurationSection typeData;
+
+    protected Class<? extends StructureController> structureInstanceClass;
+    protected HashMap<String, Object> structureInstanceData;
 
     public Structure(String id, Vector size, Vector centerOffset, String name){
         this.id = id;
-        this.size = size;
         this.centerOffset = (centerOffset != null) ? centerOffset : new Vector(0, 0, 0);
         this.name = (name != null) ? name : "unnamed";
-
-        data = new StructureBlock[size.getBlockX() * size.getBlockY() * size.getBlockZ()];
+        blocks = new FixedSize3DArray(size);
     }
 
-    protected void validatePosition(Vector position){
-        Validate.isTrue(position.getBlockX() >= 0 && position.getBlockX() < size.getBlockX(), String.format("Coordinate X out of boundaries (%d)", position.getBlockX()));
-        Validate.isTrue(position.getBlockY() >= 0 && position.getBlockY() < size.getBlockY(), String.format("Coordinate Y out of boundaries (%d)", position.getBlockX()));
-        Validate.isTrue(position.getBlockZ() >= 0 && position.getBlockZ() < size.getBlockZ(), String.format("Coordinate Z out of boundaries (%d)", position.getBlockX()));
+    public Structure(Map<String, Object> serialized){
+        this.id = (String) serialized.get("id");
+        this.centerOffset = Vector.deserialize((Map<String, Object>) serialized.get("center_offset"));
+        this.name = (String) serialized.get("name");
+        this.blocks = new FixedSize3DArray<>((HashMap<String, Object>) serialized.get("blocks"));
+        this.structureInstanceClass = (Class<? extends StructureController>) serialized.get("structure_instance_class");
+        this.structureInstanceData = (HashMap<String, Object>) serialized.get("structure_instance_class_data");
     }
 
-    protected int getIndexForPosition(Vector position){
-        validatePosition(position);
-        return (position.getBlockX() + size.getBlockX() * (position.getBlockY() + size.getBlockY() * position.getBlockZ()));
+    @Override
+    public Map<String, Object> serialize() {
+        HashMap<String, Object> serialization = new HashMap<>();
+        serialization.put("blocks", blocks.serialize());
+        serialization.put("center_offset", centerOffset.serialize());
+        serialization.put("id", id);
+        serialization.put("name", name);
+        serialization.put("structure_instance_class", structureInstanceClass);
+        serialization.put("structure_instance_class_data", structureInstanceData);
+        return serialization;
     }
 
-    public void set(Vector position, StructureBlock block){
-        data[getIndexForPosition(position)] = block;
-    }
-
-    public StructureBlock get(Vector position){
-        return data[getIndexForPosition(position)];
+    public FixedSize3DArray<StructureBlock> getBlocks() {
+        return blocks;
     }
 
     public Vector findFirstNonMatchingBlock(Location location){
-        for(int x = location.getBlockX(); x < location.getBlockX() + size.getBlockX(); ++x){
-            for(int y = location.getBlockY(); y < location.getBlockY() + size.getBlockY(); ++y){
-                for(int z = location.getBlockZ(); z < location.getBlockZ() + size.getBlockZ(); ++z){
-                    Vector position = new Vector(x, y, z);
-                    Location worldLocation = new Location(location.getWorld(), x, y, z);
-                    Material atLocation = worldLocation.getBlock().getType();
-                    Location localLocation = worldLocation.clone().subtract(location);
-                    StructureBlock atStructure = get(localLocation.toVector());
+        for(FixedSize3DArray<StructureBlock>.Iterator it = blocks.iterator(); it.hasNext(); ) {
+            StructureBlock structureBlock = it.next();
+            Vector   localPosition = it.toVector();
+            Location worldLocation = location.clone().add(localPosition);
 
-                    if(atStructure == null){
-                        if(!(atLocation.equals(Material.AIR) || atLocation.equals(Material.CAVE_AIR) || atLocation.equals(Material.VOID_AIR))){
-                            return position;
-                        }
-                    }else{
-                        if(!atStructure.matches(atLocation)) {
-                            return position;
-                        }
-                    }
-                }
+            if(structureBlock != null && !structureBlock.matches(worldLocation.getBlock().getType())) {
+                return localPosition;
             }
         }
-
         return null;
     }
 
     public boolean matches(Location location){
         return findFirstNonMatchingBlock(location) == null;
-    }
-
-    public Vector getSize() {
-        return size;
     }
 
     public Vector getCenterOffset() {
@@ -103,20 +93,20 @@ public class Structure {
         this.id = id;
     }
 
-    public Class<? extends StructureController> getStructureControllerClass() {
-        return structureControllerClass;
+    public Class<? extends StructureController> getStructureInstanceClass() {
+        return structureInstanceClass;
     }
 
-    public void setStructureControllerClass(Class<? extends StructureController> structureControllerClass) {
-        this.structureControllerClass = structureControllerClass;
+    public void setStructureInstanceClass(Class<? extends StructureController> structureInstanceClass) {
+        this.structureInstanceClass = structureInstanceClass;
     }
 
-    public ConfigurationSection getTypeData() {
-        return typeData;
+    public HashMap<String, Object> getStructureInstanceData() {
+        return structureInstanceData;
     }
 
-    public void setTypeData(ConfigurationSection typeData) {
-        this.typeData = typeData;
+    public void setStructureInstanceData(HashMap<String, Object> structureInstanceData) {
+        this.structureInstanceData = structureInstanceData;
     }
 }
 

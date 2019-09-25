@@ -2,7 +2,6 @@ package net.andrasia.kiryu144.andrasiaautomation.structure;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
 import java.util.HashMap;
@@ -30,5 +29,9 @@ public class Structures implements Listener {
             }
         }
         return null;
+    }
+
+    public Structure getStructure(String id){
+        return structures.get(id);
     }
 }

@@ -8,6 +8,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class StructureControllerStoraged extends StructureController {
     protected ArrayList<ItemStack> items;
@@ -18,15 +19,16 @@ public class StructureControllerStoraged extends StructureController {
     }
 
     @Override
-    public void loadData(ConfigurationSection section) {
-        int slots = section.getInt("slots", 0);
+    public void loadData(Map<String, Object> data) {
+        super.loadData(data);
+        int slots = (int) data.get("slots");
         for(int i = 0; i < slots; ++i){
             items.add(null);
         }
     }
 
     public Inventory createInventoryCopy() {
-        Inventory inv = Bukkit.createInventory(null, 9*6);
+        Inventory inv = Bukkit.createInventory(null, 9*6, structure.getName());
         for(int slot = 0; slot < items.size(); ++slot){
             inv.setItem(slot, items.get(slot));
         }

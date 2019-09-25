@@ -4,14 +4,22 @@ import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.world.World;
+import net.andrasia.kiryu144.andrasiaautomation.structure.Structure;
 import net.andrasia.kiryu144.andrasiaautomation.structure.StructureParser;
 import net.andrasia.kiryu144.andrasiaautomation.structure.Structures;
 import net.andrasia.kiryu144.andrasiaautomation.structure.WorldPlacedStructuresRegistry;
+import net.andrasia.kiryu144.andrasiaautomation.structure.block.MultiStructureBlock;
+import net.andrasia.kiryu144.andrasiaautomation.structure.block.SingleStructureBlock;
+import net.andrasia.kiryu144.andrasiaautomation.structure.block.StructureBlock;
+import net.andrasia.kiryu144.andrasiaautomation.structure.controller.StructureController;
+import net.andrasia.kiryu144.andrasiaautomation.structure.instance.StructureInstance;
+import net.andrasia.kiryu144.andrasiaautomation.util.FixedSize3DArray;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -27,6 +35,8 @@ public class AndrasiaAutomation extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        registerSerializedClasses();
+
         worldEdit = (WorldEditPlugin) Bukkit.getServer().getPluginManager().getPlugin("WorldEdit");
         structures = new Structures();
         worldPlacedStructures = new WorldPlacedStructuresRegistry();
@@ -39,6 +49,15 @@ public class AndrasiaAutomation extends JavaPlugin {
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
             worldPlacedStructures.tickAll();
         }, 1, 1);
+    }
+
+    public void registerSerializedClasses() {
+        ConfigurationSerialization.registerClass(MultiStructureBlock.class);
+        ConfigurationSerialization.registerClass(SingleStructureBlock.class);
+        ConfigurationSerialization.registerClass(StructureBlock.class);
+        ConfigurationSerialization.registerClass(StructureInstance.class);
+        ConfigurationSerialization.registerClass(FixedSize3DArray.class);
+        ConfigurationSerialization.registerClass(Structure.class);
     }
 
     public void loadConfig() {
@@ -86,8 +105,9 @@ public class AndrasiaAutomation extends JavaPlugin {
                     try {
                         StructureParser.Paste(StructureParser.LoadFromConfig(file), player.getLocation().subtract(0, 1, 0));
                         sender.sendMessage("§aLoaded.");
-                    } catch (IOException | InvalidConfigurationException | ClassNotFoundException e) {
-                        sender.sendMessage("§cUnable to load file!");
+                    } catch (IOException | InvalidConfigurationException e) {
+                        sender.sendMessage("§cUnable to load file! See log for more infos.");
+                        e.printStackTrace();
                     }
                     return true;
                 }

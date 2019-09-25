@@ -1,17 +1,21 @@
-package net.andrasia.kiryu144.andrasiaautomation.structure;
+package net.andrasia.kiryu144.andrasiaautomation.structure.block;
 
 import org.bukkit.Material;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-public class MultiStructureBlock implements StructureBlock{
+public class MultiStructureBlock implements StructureBlock {
     protected Set<Material> materials;
 
     public MultiStructureBlock() {
         materials = new HashSet<>();
+    }
+
+    public MultiStructureBlock(HashMap<String, Object> serialization) {
+        materials = new HashSet<>();
+        for(String matString : (List<String>) serialization.get("materials")){
+            materials.add(Material.valueOf(matString));
+        }
     }
 
     public void addMaterial(Material material){
