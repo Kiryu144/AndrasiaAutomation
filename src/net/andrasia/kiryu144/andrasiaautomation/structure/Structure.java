@@ -47,7 +47,7 @@ public class Structure implements ConfigurationSerializable {
         serialization.put("center_offset", centerOffset.serialize());
         serialization.put("id", id);
         serialization.put("name", name);
-        serialization.put("structure_instance_class", structureInstanceClass.toGenericString());
+        serialization.put("structure_instance_class", (structureInstanceClass != null) ? structureInstanceClass.toGenericString() : null);
         serialization.put("structure_instance_standard_data", structureInstanceData);
         return serialization;
     }

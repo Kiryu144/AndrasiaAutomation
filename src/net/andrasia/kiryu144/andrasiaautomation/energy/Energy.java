@@ -34,7 +34,7 @@ public class Energy implements Listener {
 
     protected void savePlayerData(Player player) {
         YamlConfiguration yamlConfiguration = new YamlConfiguration();
-        yamlConfiguration.set("network", playerNetworkAssingment.get(player.getUniqueId()));
+        yamlConfiguration.set("network", playerNetworkAssingment.get(player.getUniqueId()).getUniqueId());
         File file = getPlayerFile(player);
         try {
             yamlConfiguration.save(file);
