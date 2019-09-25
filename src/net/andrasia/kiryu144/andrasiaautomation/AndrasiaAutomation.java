@@ -4,6 +4,8 @@ import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.world.World;
+import net.andrasia.kiryu144.andrasiaautomation.energy.Energy;
+import net.andrasia.kiryu144.andrasiaautomation.energy.EnergyNetwork;
 import net.andrasia.kiryu144.andrasiaautomation.structure.Structure;
 import net.andrasia.kiryu144.andrasiaautomation.structure.StructureParser;
 import net.andrasia.kiryu144.andrasiaautomation.structure.Structures;
@@ -31,6 +33,7 @@ public class AndrasiaAutomation extends JavaPlugin {
     public static Material PRIMARY_BLOCK = Material.EMERALD_BLOCK;
 
     public static Structures structures;
+    public static Energy energy;
 
     @Override
     public void onEnable() {
@@ -40,11 +43,14 @@ public class AndrasiaAutomation extends JavaPlugin {
         registerSerializedClasses();
 
         structures = new Structures();
+        energy = new Energy();
 
         Bukkit.getPluginManager().registerEvents(structures, this);
+        Bukkit.getPluginManager().registerEvents(energy, this);
 
         loadConfig();
         structures.loadAllInstances();
+        energy.loadAllNetworks();
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
             structures.tickAll();
@@ -58,6 +64,7 @@ public class AndrasiaAutomation extends JavaPlugin {
         ConfigurationSerialization.registerClass(StructureInstance.class);
         ConfigurationSerialization.registerClass(FixedSize3DArray.class);
         ConfigurationSerialization.registerClass(Structure.class);
+        ConfigurationSerialization.registerClass(EnergyNetwork.class);
     }
 
     public void loadConfig() {
