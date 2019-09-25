@@ -35,14 +35,16 @@ public class AndrasiaAutomation extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        worldEdit = (WorldEditPlugin) Bukkit.getServer().getPluginManager().getPlugin("WorldEdit");
+
         registerSerializedClasses();
 
-        worldEdit = (WorldEditPlugin) Bukkit.getServer().getPluginManager().getPlugin("WorldEdit");
         structures = new Structures();
 
         Bukkit.getPluginManager().registerEvents(structures, this);
 
         loadConfig();
+        structures.loadAllInstances();
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
 
@@ -64,7 +66,7 @@ public class AndrasiaAutomation extends JavaPlugin {
         for(String structureName : getConfig().getStringList("structures")){
             File file = new File(getDataFolder() + "/structures/" + structureName + ".yml");
             try {
-                structures.add(StructureParser.LoadFromConfig(file));
+                structures.addStructure(StructureParser.LoadFromConfig(file));
                 getLogger().info("Registered structure '" + structureName + "'");
             } catch (Exception e) {
                 getLogger().severe("Unable to load structure '" + structureName + "'");
