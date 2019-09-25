@@ -34,7 +34,11 @@ public class StructureInstance implements ConfigurationSerializable {
 
     }
 
-    public void init(Map<String, Object> data){
+    public void onInit(Map<String, Object> data){
+
+    }
+
+    public void onDestroy() {
 
     }
 

@@ -59,7 +59,7 @@ public class Structures implements Listener {
         StructureInstance instance = null;
         try {
             instance = structure.getStructureInstanceClass().getConstructor(Location.class, Structure.class).newInstance(location, structure);
-            instance.init(structure.getStructureInstanceInitData());
+            instance.onInit(structure.getStructureInstanceInitData());
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             sender.sendMessage("§cUnable to initialize instance! Please report to an Administrator!");
             e.printStackTrace();
@@ -148,6 +148,8 @@ public class Structures implements Listener {
         StructureInstance instance = structureInstanceBlockMap.remove(e.getBlock().getLocation());
         if(instance != null){
             // Structure was broken
+            instance.onDestroy();
+
             Structure structure = instance.getStructure();
             for(FixedSize3DArray<StructureBlock>.Iterator it = structure.getBlocks().iterator(); it.hasNext(); ) {
                 StructureBlock structureBlock = it.next();
@@ -156,6 +158,7 @@ public class Structures implements Listener {
             }
             structureInstanceLocationMap.remove(instance.getLocation());
             structureInstances.remove(instance);
+
 
             boolean success = getFileForStructureInstance(instance).delete();
             if(success){
