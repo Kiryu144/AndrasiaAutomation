@@ -6,6 +6,8 @@ import net.andrasia.kiryu144.andrasiaautomation.structure.Structure;
 import net.andrasia.kiryu144.andrasiaautomation.util.WeightedRandomList;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
@@ -65,7 +67,16 @@ public class StructureVoidMinerInstance extends StructureInstance{
         super.tick();
         if(--ticksLeft <= 0){
             ticksLeft = delayInTicks;
-            getLocation().getWorld().dropItem(getLocation().clone().add(0.5, 2, 0.5), new ItemStack(drops.getRandom())).setVelocity(new Vector(0, 0, 0));
+
+            ItemStack drop = new ItemStack(drops.getRandom());
+
+            Block block = getLocation().clone().add(0, 1, 0).getBlock();
+            if(block.getType().equals(Material.CHEST)){
+                Chest chest = (Chest) block.getState();
+                chest.getInventory().addItem(drop);
+            }else{
+                getLocation().getWorld().dropItem(getLocation().clone().add(0.5, 2, 0.5), drop).setVelocity(new Vector(0, 0, 0));
+            }
         }
     }
 }
