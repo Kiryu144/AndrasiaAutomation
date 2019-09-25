@@ -2,6 +2,7 @@ package net.andrasia.kiryu144.andrasiaautomation.structure.instance;
 
 import net.andrasia.kiryu144.andrasiaautomation.AndrasiaAutomation;
 import net.andrasia.kiryu144.andrasiaautomation.structure.Structure;
+import net.andrasia.kiryu144.andrasiaautomation.util.LocationMap;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 

@@ -7,11 +7,9 @@ import com.sk89q.worldedit.world.World;
 import net.andrasia.kiryu144.andrasiaautomation.structure.Structure;
 import net.andrasia.kiryu144.andrasiaautomation.structure.StructureParser;
 import net.andrasia.kiryu144.andrasiaautomation.structure.Structures;
-import net.andrasia.kiryu144.andrasiaautomation.structure.WorldPlacedStructuresRegistry;
 import net.andrasia.kiryu144.andrasiaautomation.structure.block.MultiStructureBlock;
 import net.andrasia.kiryu144.andrasiaautomation.structure.block.SingleStructureBlock;
 import net.andrasia.kiryu144.andrasiaautomation.structure.block.StructureBlock;
-import net.andrasia.kiryu144.andrasiaautomation.structure.controller.StructureController;
 import net.andrasia.kiryu144.andrasiaautomation.structure.instance.StructureInstance;
 import net.andrasia.kiryu144.andrasiaautomation.util.FixedSize3DArray;
 import org.bukkit.Bukkit;
@@ -27,27 +25,27 @@ import java.io.File;
 import java.io.IOException;
 
 public class AndrasiaAutomation extends JavaPlugin {
+    public static AndrasiaAutomation instance;
+    public static boolean DEBUG = true;
     public static WorldEditPlugin worldEdit;
     public static Material PRIMARY_BLOCK = Material.EMERALD_BLOCK;
 
     public static Structures structures;
-    public static WorldPlacedStructuresRegistry worldPlacedStructures;
 
     @Override
     public void onEnable() {
+        instance = this;
         registerSerializedClasses();
 
         worldEdit = (WorldEditPlugin) Bukkit.getServer().getPluginManager().getPlugin("WorldEdit");
         structures = new Structures();
-        worldPlacedStructures = new WorldPlacedStructuresRegistry();
 
         Bukkit.getPluginManager().registerEvents(structures, this);
-        Bukkit.getPluginManager().registerEvents(worldPlacedStructures, this);
 
         loadConfig();
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
-            worldPlacedStructures.tickAll();
+
         }, 1, 1);
     }
 
@@ -80,9 +78,9 @@ public class AndrasiaAutomation extends JavaPlugin {
         if(command.getName().equalsIgnoreCase("automation")){
             if(args.length == 1){
                 if(args[0].equalsIgnoreCase("reload")){
-                    structures.clear();
-                    loadConfig();
-                    sender.sendMessage("§aReloaded.");
+                    return true;
+                    //loadConfig();
+                   //sender.sendMessage("§aReloaded.");
                 }
             }
             if(args.length == 2){
