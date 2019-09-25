@@ -11,26 +11,29 @@ import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Structures implements Listener {
     protected HashMap<String, Structure> structureID;
     protected LocationMap<StructureInstance> structureInstanceLocationMap;
     protected LocationMap<StructureInstance> structureInstanceBlockMap;
+    protected Set<StructureInstance> structureInstances;
 
     public Structures(){
         structureID = new HashMap<>();
         structureInstanceLocationMap = new LocationMap<>();
         structureInstanceBlockMap = new LocationMap<>();
+        structureInstances = new HashSet<>();
     }
 
     public void addStructure(Structure structure){
@@ -53,7 +56,16 @@ public class Structures implements Listener {
 
     public void addStructureInstance(Location location, Structure structure, CommandSender sender){
         // A structure was built
-        StructureInstance instance = new StructureInstance(structure, location);
+        StructureInstance instance = null;
+        try {
+            instance = structure.getStructureInstanceClass().getConstructor(Location.class, Structure.class).newInstance(location, structure);
+            instance.init(structure.getStructureInstanceInitData());
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            sender.sendMessage("§cUnable to initialize instance! Please report to an Administrator!");
+            e.printStackTrace();
+            return;
+        }
+
         structureInstanceLocationMap.put(instance.getLocation(), instance);
 
         for(FixedSize3DArray<StructureBlock>.Iterator it = structure.getBlocks().iterator(); it.hasNext(); ){
@@ -61,6 +73,8 @@ public class Structures implements Listener {
             Location loc = location.clone().add(it.toVector()).subtract(structure.getCenterOffset());
             structureInstanceBlockMap.put(loc, instance);
         }
+
+        structureInstances.add(instance);
 
         try {
             save(instance);
@@ -109,6 +123,14 @@ public class Structures implements Listener {
         }
     }
 
+    public void tickAll() {
+        for(StructureInstance instance : structureInstances){
+            if(instance.getLocation().getChunk().isLoaded()){
+                instance.tick();
+            }
+        }
+    }
+
     @EventHandler
     private void onBlockPlace(BlockPlaceEvent e){
         if(e.getBlock().getType().equals(AndrasiaAutomation.PRIMARY_BLOCK)){
@@ -133,6 +155,7 @@ public class Structures implements Listener {
                 structureInstanceBlockMap.remove(location); //TODO: Evaluate to set to zero?
             }
             structureInstanceLocationMap.remove(instance.getLocation());
+            structureInstances.remove(instance);
 
             boolean success = getFileForStructureInstance(instance).delete();
             if(success){

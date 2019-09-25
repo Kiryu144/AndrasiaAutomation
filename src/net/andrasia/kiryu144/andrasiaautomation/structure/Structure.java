@@ -1,6 +1,7 @@
 package net.andrasia.kiryu144.andrasiaautomation.structure;
 
 import net.andrasia.kiryu144.andrasiaautomation.structure.block.StructureBlock;
+import net.andrasia.kiryu144.andrasiaautomation.structure.instance.StructureInstance;
 import net.andrasia.kiryu144.andrasiaautomation.util.FixedSize3DArray;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -15,7 +16,7 @@ public class Structure implements ConfigurationSerializable {
     protected String id;
     protected String name;
 
-    //protected Class<? extends StructureController> structureInstanceClass;
+    protected Class<? extends StructureInstance> structureInstanceClass;
     protected HashMap<String, Object> structureInstanceData;
 
     public Structure(String id, Vector size, Vector centerOffset, String name){
@@ -30,8 +31,13 @@ public class Structure implements ConfigurationSerializable {
         this.centerOffset = Vector.deserialize((Map<String, Object>) serialized.get("center_offset"));
         this.name = (String) serialized.get("name");
         this.blocks = new FixedSize3DArray<>((HashMap<String, Object>) serialized.get("blocks"));
-        //this.structureInstanceClass = (Class<? extends StructureController>) serialized.get("structure_instance_class");
-        this.structureInstanceData = (HashMap<String, Object>) serialized.get("structure_instance_class_data");
+        try {
+            this.structureInstanceClass = (Class) Class.forName((String)serialized.get("structure_instance_class"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            this.structureInstanceClass = StructureInstance.class;
+        }
+        this.structureInstanceData = (HashMap<String, Object>) serialized.get("structure_instance_standard_data");
     }
 
     @Override
@@ -41,8 +47,8 @@ public class Structure implements ConfigurationSerializable {
         serialization.put("center_offset", centerOffset.serialize());
         serialization.put("id", id);
         serialization.put("name", name);
-        //serialization.put("structure_instance_class", structureInstanceClass);
-        serialization.put("structure_instance_class_data", structureInstanceData);
+        serialization.put("structure_instance_class", structureInstanceClass.toGenericString());
+        serialization.put("structure_instance_standard_data", structureInstanceData);
         return serialization;
     }
 
@@ -90,16 +96,12 @@ public class Structure implements ConfigurationSerializable {
     public void setId(String id) {
         this.id = id;
     }
-/*
-    public Class<? extends StructureController> getStructureInstanceClass() {
+
+    public Class<? extends StructureInstance> getStructureInstanceClass() {
         return structureInstanceClass;
     }
 
-    public void setStructureInstanceClass(Class<? extends StructureController> structureInstanceClass) {
-        this.structureInstanceClass = structureInstanceClass;
-    }*/
-
-    public HashMap<String, Object> getStructureInstanceData() {
+    public HashMap<String, Object> getStructureInstanceInitData() {
         return structureInstanceData;
     }
 

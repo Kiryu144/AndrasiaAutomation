@@ -47,7 +47,7 @@ public class AndrasiaAutomation extends JavaPlugin {
         structures.loadAllInstances();
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
-
+            structures.tickAll();
         }, 1, 1);
     }
 

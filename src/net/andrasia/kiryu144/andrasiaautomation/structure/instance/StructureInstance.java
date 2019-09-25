@@ -12,7 +12,7 @@ public class StructureInstance implements ConfigurationSerializable {
     protected Structure structure; // The structure this instance is bound to
     protected Location location;   // The location the structure instance is placed at (PRIMARY_BLOCK)
 
-    public StructureInstance(Structure structure, Location location) {
+    public StructureInstance(Location location, Structure structure) {
         this.structure = structure;
         this.location = location;
     }
@@ -28,6 +28,14 @@ public class StructureInstance implements ConfigurationSerializable {
         data.put("structure", structure.getId());
         data.put("location", location);
         return data;
+    }
+
+    public void tick(){
+
+    }
+
+    public void init(Map<String, Object> data){
+
     }
 
     public Structure getStructure() {
