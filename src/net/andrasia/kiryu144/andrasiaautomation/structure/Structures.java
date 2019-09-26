@@ -106,7 +106,7 @@ public class Structures implements Listener {
         return (StructureInstance) yamlConfiguration.get("instance");
     }
 
-    public void loadAllInstances(){
+    public void loadAll(){
         getInstanceFolder().mkdirs();
         for(File file : getInstanceFolder().listFiles()){
             if(file.isFile() && file.getName().endsWith(".yml")){

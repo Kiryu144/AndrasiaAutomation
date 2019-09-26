@@ -46,11 +46,11 @@ public class AndrasiaAutomation extends JavaPlugin {
         energy = new Energy();
 
         Bukkit.getPluginManager().registerEvents(structures, this);
-        //Bukkit.getPluginManager().registerEvents(energy, this);
+        Bukkit.getPluginManager().registerEvents(energy, this);
 
         loadConfig();
-        structures.loadAllInstances();
-        //energy.loadAllNetworks();
+        structures.loadAll();
+        energy.loadAll();
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
             structures.tickAll();
@@ -117,6 +117,8 @@ public class AndrasiaAutomation extends JavaPlugin {
                         e.printStackTrace();
                     }
                     return true;
+                }else if(args[0].equalsIgnoreCase("energy") && args[1].equalsIgnoreCase("get")){
+                    sender.sendMessage(String.format("Energy level: %f", energy.getNetworkFromPlayer(player.getUniqueId()).getEnergy()));
                 }
             }
 

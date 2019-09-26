@@ -16,58 +16,87 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class Energy implements Listener {
-    protected HashMap<UUID, EnergyNetwork> playerNetworkAssingment;
+    protected HashMap<UUID, EnergyNetwork> players;
     protected HashMap<UUID, EnergyNetwork> networks;
 
     public Energy() {
-        playerNetworkAssingment = new HashMap<>();
+        players = new HashMap<>();
         networks = new HashMap<>();
     }
 
-    protected EnergyNetwork getNetworkForPlayer(Player player){
-        return playerNetworkAssingment.get(player.getUniqueId());
+    public void loadAll() {
+        // Load networks
+        {
+            File file = getNetworkFile(UUID.randomUUID()).getParentFile();
+            file.mkdirs();
+            for (File networkFile : file.listFiles()) {
+                if (networkFile.getName().endsWith(".yml")) {
+                    EnergyNetwork network = loadNetwork(UUID.fromString(networkFile.getName().replace(".yml", "")));
+                    networks.put(network.getUniqueId(), network);
+                }
+            }
+            AndrasiaAutomation.instance.getLogger().info(String.format("Loaded %d networks from config", networks.size()));
+        }
+
+        // Load players
+        {
+            File file = getPlayerFile(UUID.randomUUID()).getParentFile();
+            file.mkdirs();
+            for (File playerFile : file.listFiles()) {
+                if (playerFile.getName().endsWith(".yml")) {
+                    UUID player = UUID.fromString(playerFile.getName().replace(".yml", ""));
+                    UUID network = loadPlayer(player);
+                    players.put(player, getNetwork(network));
+                }
+            }
+            AndrasiaAutomation.instance.getLogger().info(String.format("Loaded %d players from config", players.size()));
+        }
     }
 
-    protected File getPlayerFile(Player player){
-        return new File(AndrasiaAutomation.instance.getDataFolder() + "/players/" + player.getUniqueId() + ".yml");
+    public EnergyNetwork getNetworkFromPlayer(UUID player){
+        return players.get(player);
     }
 
-    protected void savePlayerData(Player player) {
+    public EnergyNetwork getNetwork(UUID network){
+        return networks.get(network);
+    }
+
+    protected File getPlayerFile(UUID player){
+        return new File(AndrasiaAutomation.instance.getDataFolder() + "/players/" + player.toString() + ".yml");
+    }
+
+    protected File getNetworkFile(UUID network){
+        return new File(AndrasiaAutomation.instance.getDataFolder() + "/networks/" + network.toString() + ".yml");
+    }
+
+    protected void savePlayer(UUID player, UUID network) {
         YamlConfiguration yamlConfiguration = new YamlConfiguration();
-        yamlConfiguration.set("network", playerNetworkAssingment.get(player.getUniqueId()).getUniqueId());
+        yamlConfiguration.set("network", network.toString());
         File file = getPlayerFile(player);
         try {
             yamlConfiguration.save(file);
         } catch (IOException e) {
-            player.sendMessage("§cUnable to save your network data. Please report to an Administrator!");
+            AndrasiaAutomation.instance.getLogger().warning(String.format("Unable to save network data for player %s", player));
             e.printStackTrace();
         }
     }
 
-    protected EnergyNetwork loadPlayerData(Player player) {
+    protected UUID loadPlayer(UUID player) {
         YamlConfiguration yamlConfiguration = new YamlConfiguration();
         File file = getPlayerFile(player);
         try {
             yamlConfiguration.load(file);
+            return UUID.fromString(yamlConfiguration.getString("network"));
         } catch (IOException | InvalidConfigurationException e) {
             return null;
         }
-        return networks.get(UUID.fromString(yamlConfiguration.getString("network")));
-    }
-
-    protected File getNetworkFile(EnergyNetwork network){
-        return getNetworkFile(network.getUniqueId());
-    }
-
-    protected File getNetworkFile(UUID network){
-        return new File(AndrasiaAutomation.instance.getDataFolder() + "/networks/" + network + ".yml");
     }
 
     protected void saveNetwork(EnergyNetwork network){
         YamlConfiguration yamlConfiguration = new YamlConfiguration();
         yamlConfiguration.set("network", network);
         try {
-            yamlConfiguration.save(getNetworkFile(network));
+            yamlConfiguration.save(getNetworkFile(network.getUniqueId()));
         } catch (IOException e) {
             AndrasiaAutomation.instance.getLogger().warning("Could not save network " + network.getUniqueId().toString());
             e.printStackTrace();
@@ -83,39 +112,23 @@ public class Energy implements Listener {
         } catch (IOException | InvalidConfigurationException e) {
             return null;
         }
-        return null;
-    }
-
-    public void loadAllNetworks() {
-        File file = getNetworkFile(UUID.randomUUID()).getParentFile();
-        file.mkdirs();
-        for(File networkFile : file.listFiles()){
-            if(networkFile.getName().endsWith(".yml")){
-                EnergyNetwork network = loadNetwork(UUID.fromString(networkFile.getName().replace(".yml", "")));
-                networks.put(network.getUniqueId(), network);
-            }
-        }
-    }
-
-    protected EnergyNetwork createNewNetwork(Player player){
-        EnergyNetwork network = new EnergyNetwork(UUID.randomUUID(), 0.0);
-        networks.put(network.getUniqueId(), network);
         return network;
     }
 
     @EventHandler
     protected void onPlayerJoin(PlayerJoinEvent e){
-        EnergyNetwork network = loadPlayerData(e.getPlayer());
-        if(network == null){
-            network = createNewNetwork(e.getPlayer());
+        if(!players.containsKey(e.getPlayer().getUniqueId())){
+            EnergyNetwork network = new EnergyNetwork(UUID.randomUUID(), 0.0);
+            saveNetwork(network);
+            savePlayer(e.getPlayer().getUniqueId(), network.getUniqueId());
+            networks.put(network.getUniqueId(), network);
+            players.put(e.getPlayer().getUniqueId(), network);
+            AndrasiaAutomation.instance.getLogger().info(String.format("Created network '%s' for player '%s'", network.getUniqueId().toString(), e.getPlayer().getName()));
         }
-        playerNetworkAssingment.put(e.getPlayer().getUniqueId(), network);
-        savePlayerData(e.getPlayer());
     }
 
     @EventHandler
     protected void onPlayerQuit(PlayerQuitEvent e){
-        savePlayerData(e.getPlayer());
-        saveNetwork(getNetworkForPlayer(e.getPlayer()));
+        savePlayer(e.getPlayer().getUniqueId(), getNetworkFromPlayer(e.getPlayer().getUniqueId()).getUniqueId());
     }
 }
