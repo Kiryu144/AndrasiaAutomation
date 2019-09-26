@@ -46,11 +46,11 @@ public class AndrasiaAutomation extends JavaPlugin {
         energy = new Energy();
 
         Bukkit.getPluginManager().registerEvents(structures, this);
-        Bukkit.getPluginManager().registerEvents(energy, this);
+        //Bukkit.getPluginManager().registerEvents(energy, this);
 
         loadConfig();
         structures.loadAllInstances();
-        energy.loadAllNetworks();
+        //energy.loadAllNetworks();
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
             structures.tickAll();

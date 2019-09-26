@@ -1,5 +1,6 @@
 package net.andrasia.kiryu144.andrasiaautomation.structure;
 
+import net.andrasia.kiryu144.andrasiaautomation.AndrasiaAutomation;
 import net.andrasia.kiryu144.andrasiaautomation.structure.block.StructureBlock;
 import net.andrasia.kiryu144.andrasiaautomation.structure.instance.StructureInstance;
 import net.andrasia.kiryu144.andrasiaautomation.util.FixedSize3DArray;
@@ -33,8 +34,8 @@ public class Structure implements ConfigurationSerializable {
         this.blocks = new FixedSize3DArray<>((HashMap<String, Object>) serialized.get("blocks"));
         try {
             this.structureInstanceClass = (Class) Class.forName((String)serialized.get("structure_instance_class"));
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            AndrasiaAutomation.instance.getLogger().warning("Unknown structure instance class for '" + name + "'");
             this.structureInstanceClass = StructureInstance.class;
         }
         this.structureInstanceData = (HashMap<String, Object>) serialized.get("structure_instance_standard_data");

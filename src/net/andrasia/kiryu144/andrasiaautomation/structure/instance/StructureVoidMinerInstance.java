@@ -15,18 +15,19 @@ import java.util.List;
 import java.util.Map;
 
 public class StructureVoidMinerInstance extends StructureInstance{
+    // Serialized in structure
     protected int delayInTicks;
     protected WeightedRandomList<Material> drops;
 
-    protected int ticksLeft = 0;
+    // Not serialized
     protected Laser laser;
 
     public StructureVoidMinerInstance(Location location, Structure structure) {
         super(location, structure);
     }
 
-    public StructureVoidMinerInstance(Map<String, Object> data) {
-        super(data);
+    public StructureVoidMinerInstance(Map<String, Object> savedInstanceData) {
+        super(savedInstanceData);
     }
 
     @Override
@@ -35,13 +36,13 @@ public class StructureVoidMinerInstance extends StructureInstance{
     }
 
     @Override
-    public void onInit(Map<String, Object> data) {
-        super.onInit(data);
+    public void onInit(Map<String, Object> structureSpecific) {
+        super.onInit(structureSpecific);
         drops = new WeightedRandomList<>();
 
-        delayInTicks = (int) data.get("delay_in_ticks");
-        ticksLeft = delayInTicks;
-        for(String mat : (List<String>) data.get("drops")){
+        delayInTicks = (int) structureSpecific.get("delay_in_ticks");
+        sleepForTicks(delayInTicks);
+        for(String mat : (List<String>) structureSpecific.get("drops")){
             String[] args = mat.split(":");
             drops.add(Material.valueOf(args[0]), Integer.parseInt(args[1]));
         }
@@ -65,9 +66,8 @@ public class StructureVoidMinerInstance extends StructureInstance{
     @Override
     public void tick() {
         super.tick();
-        if(--ticksLeft <= 0){
-            ticksLeft = delayInTicks;
-
+        if(!isSleeping()){
+            sleepForTicks(delayInTicks);
             ItemStack drop = new ItemStack(drops.getRandom());
 
             Block block = getLocation().clone().add(0, 1, 0).getBlock();
@@ -79,4 +79,5 @@ public class StructureVoidMinerInstance extends StructureInstance{
             }
         }
     }
+
 }
