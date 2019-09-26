@@ -2,11 +2,14 @@ package net.andrasia.kiryu144.andrasiaautomation.energy;
 
 
 import net.andrasia.kiryu144.andrasiaautomation.AndrasiaAutomation;
+import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -113,6 +116,13 @@ public class Energy implements Listener {
             return null;
         }
         return network;
+    }
+
+    @EventHandler
+    protected void onRightClick(PlayerInteractEvent event){
+        if(event.getItem().getType().equals(Material.DEBUG_STICK) && event.getAction().equals(Action.RIGHT_CLICK_AIR)){
+            event.getPlayer().sendMessage(String.format("Energy: %d/%d", Math.round(getNetworkFromPlayer(event.getPlayer().getUniqueId()).getEnergy()), Math.round(EnergyNetwork.LIMIT)));
+        }
     }
 
     @EventHandler
