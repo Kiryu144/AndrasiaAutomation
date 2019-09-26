@@ -26,7 +26,7 @@ public class EnergyNetwork implements ConfigurationSerializable {
     }
 
     public void setEnergy(double energy) {
-        this.energy = Math.min(energy, LIMIT);
+        this.energy = Math.max(0, Math.min(energy, LIMIT));
     }
 
     public void addEnergy(double energy){

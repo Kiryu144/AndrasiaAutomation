@@ -70,7 +70,9 @@ public class Laser {
     }
 
     public void start(Plugin plugin){
-        Validate.isTrue(run == null, "Task already started");
+        if(run != null){
+            return;
+        }
         run = new BukkitRunnable() {
             int time = duration;
             @Override
@@ -114,8 +116,9 @@ public class Laser {
     }
 
     public void stop(){
-        Validate.isTrue(run != null, "Task not started");
-        run.cancel();
+        if(run != null) {
+            run.cancel();
+        }
     }
 
     public void moveStart(Location location) throws ReflectiveOperationException{

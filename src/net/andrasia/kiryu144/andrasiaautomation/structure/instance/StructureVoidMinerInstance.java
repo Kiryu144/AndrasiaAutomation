@@ -1,6 +1,7 @@
 package net.andrasia.kiryu144.andrasiaautomation.structure.instance;
 
 import net.andrasia.kiryu144.andrasiaautomation.AndrasiaAutomation;
+import net.andrasia.kiryu144.andrasiaautomation.energy.EnergyNetwork;
 import net.andrasia.kiryu144.andrasiaautomation.lib.Laser;
 import net.andrasia.kiryu144.andrasiaautomation.structure.Structure;
 import net.andrasia.kiryu144.andrasiaautomation.util.WeightedRandomList;
@@ -18,6 +19,7 @@ import java.util.UUID;
 
 public class StructureVoidMinerInstance extends StructureInstance{
     // Serialized in structure
+    protected double energyPerTick;
     protected int delayInTicks;
     protected WeightedRandomList<Material> drops;
 
@@ -43,6 +45,7 @@ public class StructureVoidMinerInstance extends StructureInstance{
         drops = new WeightedRandomList<>();
 
         delayInTicks = (int) structureSpecific.get("delay_in_ticks");
+        energyPerTick = (double) structureSpecific.getOrDefault("energy_per_tick", 0.0);
         sleepForTicks(delayInTicks);
         for(String mat : (List<String>) structureSpecific.get("drops")){
             String[] args = mat.split(":");
@@ -68,16 +71,27 @@ public class StructureVoidMinerInstance extends StructureInstance{
     @Override
     public void tick() {
         super.tick();
-        if(!isSleeping()){
-            sleepForTicks(delayInTicks);
-            ItemStack drop = new ItemStack(drops.getRandom());
+        EnergyNetwork network = getEnergyNetwork();
+        network.addEnergy(-energyPerTick);
 
-            Block block = getLocation().clone().add(0, 1, 0).getBlock();
-            if(block.getType().equals(Material.CHEST)){
-                Chest chest = (Chest) block.getState();
-                chest.getInventory().addItem(drop);
+        if(!isSleeping()){
+            if(network.getEnergy() < energyPerTick){
+                // Not enough energy
+                laser.stop();
+                sleepForTicks(20);
             }else{
-                getLocation().getWorld().dropItem(getLocation().clone().add(0.5, 2, 0.5), drop).setVelocity(new Vector(0, 0, 0));
+                laser.start(AndrasiaAutomation.instance);
+                ItemStack drop = new ItemStack(drops.getRandom());
+
+                Block block = getLocation().clone().add(0, 1, 0).getBlock();
+                if(block.getType().equals(Material.CHEST)){
+                    Chest chest = (Chest) block.getState();
+                    chest.getInventory().addItem(drop);
+                }else{
+                    getLocation().getWorld().dropItem(getLocation().clone().add(0.5, 2, 0.5), drop).setVelocity(new Vector(0, 0, 0));
+                }
+
+                sleepForTicks(delayInTicks);
             }
         }
     }

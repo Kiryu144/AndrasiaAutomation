@@ -4,7 +4,11 @@ import net.andrasia.kiryu144.andrasiaautomation.AndrasiaAutomation;
 import net.andrasia.kiryu144.andrasiaautomation.energy.EnergyNetwork;
 import net.andrasia.kiryu144.andrasiaautomation.structure.Structure;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Map;
 import java.util.UUID;
@@ -13,17 +17,32 @@ public class StructureGeneratorInstance extends StructureInstance {
     // Serialized in structure
     protected double energyPerTick;
 
+    // Serialized in instance
+    protected double buffer;
+
     public StructureGeneratorInstance(Location location, Structure structure, UUID player) {
         super(location, structure, player);
     }
 
     public StructureGeneratorInstance(Map<String, Object> savedInstanceData) {
         super(savedInstanceData);
+        this.buffer = (double) savedInstanceData.getOrDefault("buffer", 0.0);
+    }
+
+    public double getEnergyFromMaterial(Material material){
+        switch (material){
+            case CHARCOAL:
+            case COAL: return 1600;
+
+        }
+        return 0;
     }
 
     @Override
     public Map<String, Object> serialize() {
-        return super.serialize();
+        Map<String, Object> map = super.serialize();
+        map.put("buffer", buffer);
+        return map;
     }
 
     @Override
@@ -41,8 +60,34 @@ public class StructureGeneratorInstance extends StructureInstance {
     public void tick() {
         super.tick();
         if(!isSleeping()){
-            EnergyNetwork network = AndrasiaAutomation.energy.getNetworkFromPlayer(player);
-            network.addEnergy(energyPerTick);
+            if(buffer > 1){
+                EnergyNetwork network = AndrasiaAutomation.energy.getNetworkFromPlayer(player);
+
+                if(buffer > energyPerTick){
+                    network.addEnergy(energyPerTick);
+                    buffer -= energyPerTick;
+                }else{
+                    network.addEnergy(buffer);
+                    buffer = 0;
+                }
+            }else{
+                Block block = getLocation().clone().add(0, 1, 0).getBlock();
+                if(block.getType().equals(Material.CHEST)) {
+                    Chest chest = (Chest) block.getState();
+                    for(ItemStack itemStack : chest.getInventory()){
+                        if(itemStack != null){
+                            double fuel = getEnergyFromMaterial(itemStack.getType());
+                            buffer += fuel;
+                            itemStack.setAmount(itemStack.getAmount() - 1);
+                        }
+                    }
+                }
+
+                if(buffer < 1){
+                    // No item has been found
+                    sleepForTicks(20);
+                }
+            }
         }
     }
 }

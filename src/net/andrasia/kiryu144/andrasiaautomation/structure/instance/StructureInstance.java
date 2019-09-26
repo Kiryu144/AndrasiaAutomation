@@ -1,6 +1,8 @@
 package net.andrasia.kiryu144.andrasiaautomation.structure.instance;
 
 import net.andrasia.kiryu144.andrasiaautomation.AndrasiaAutomation;
+import net.andrasia.kiryu144.andrasiaautomation.energy.Energy;
+import net.andrasia.kiryu144.andrasiaautomation.energy.EnergyNetwork;
 import net.andrasia.kiryu144.andrasiaautomation.structure.Structure;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -56,6 +58,10 @@ public class StructureInstance implements ConfigurationSerializable {
 
     public boolean isSleeping() {
         return sleepingTicks > 0;
+    }
+
+    public EnergyNetwork getEnergyNetwork() {
+        return AndrasiaAutomation.energy.getNetworkFromPlayer(player);
     }
 
     public void onInit(Map<String, Object> structureSpecific) {
