@@ -119,7 +119,7 @@ public class Energy implements Listener {
 
     @EventHandler
     protected void onRightClick(PlayerInteractEvent event){
-        if(event.getItem().getType().equals(Material.DEBUG_STICK) && event.getAction().equals(Action.RIGHT_CLICK_AIR)){
+        if(event.getItem() != null && event.getItem().getType().equals(Material.DEBUG_STICK) && event.getAction().equals(Action.RIGHT_CLICK_AIR)){
             event.getPlayer().sendMessage(String.format("Energy: %d/%d", Math.round(getNetworkFromPlayer(event.getPlayer().getUniqueId()).getEnergy()), Math.round(EnergyNetwork.LIMIT)));
         }
     }
