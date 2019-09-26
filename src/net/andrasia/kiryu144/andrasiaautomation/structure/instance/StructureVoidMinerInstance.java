@@ -1,18 +1,20 @@
 package net.andrasia.kiryu144.andrasiaautomation.structure.instance;
 
 import net.andrasia.kiryu144.andrasiaautomation.AndrasiaAutomation;
-import net.andrasia.kiryu144.andrasiaautomation.external.Laser;
+import net.andrasia.kiryu144.andrasiaautomation.lib.Laser;
 import net.andrasia.kiryu144.andrasiaautomation.structure.Structure;
 import net.andrasia.kiryu144.andrasiaautomation.util.WeightedRandomList;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class StructureVoidMinerInstance extends StructureInstance{
     // Serialized in structure
@@ -22,8 +24,8 @@ public class StructureVoidMinerInstance extends StructureInstance{
     // Not serialized
     protected Laser laser;
 
-    public StructureVoidMinerInstance(Location location, Structure structure) {
-        super(location, structure);
+    public StructureVoidMinerInstance(Location location, Structure structure, UUID player) {
+        super(location, structure, player);
     }
 
     public StructureVoidMinerInstance(Map<String, Object> savedInstanceData) {

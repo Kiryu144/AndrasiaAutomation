@@ -2,6 +2,7 @@ package net.andrasia.kiryu144.andrasiaautomation.energy;
 
 
 import net.andrasia.kiryu144.andrasiaautomation.AndrasiaAutomation;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -9,9 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -140,5 +139,19 @@ public class Energy implements Listener {
     @EventHandler
     protected void onPlayerQuit(PlayerQuitEvent e){
         savePlayer(e.getPlayer().getUniqueId(), getNetworkFromPlayer(e.getPlayer().getUniqueId()).getUniqueId());
+        saveNetwork(getNetworkFromPlayer(e.getPlayer().getUniqueId()));
+    }
+
+    @EventHandler
+    protected void onPlayerKick(PlayerKickEvent e){
+        savePlayer(e.getPlayer().getUniqueId(), getNetworkFromPlayer(e.getPlayer().getUniqueId()).getUniqueId());
+        saveNetwork(getNetworkFromPlayer(e.getPlayer().getUniqueId()));
+    }
+
+    public void onServerClose() {
+        for(Player player : Bukkit.getOnlinePlayers()){
+            savePlayer(player.getUniqueId(), getNetworkFromPlayer(player.getUniqueId()).getUniqueId());
+            saveNetwork(getNetworkFromPlayer(player.getUniqueId()));
+        }
     }
 }

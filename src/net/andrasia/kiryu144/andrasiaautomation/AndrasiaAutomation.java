@@ -57,6 +57,11 @@ public class AndrasiaAutomation extends JavaPlugin {
         }, 1, 1);
     }
 
+    @Override
+    public void onDisable() {
+        energy.onServerClose();
+    }
+
     public void registerSerializedClasses() {
         ConfigurationSerialization.registerClass(MultiStructureBlock.class);
         ConfigurationSerialization.registerClass(SingleStructureBlock.class);
@@ -89,7 +94,7 @@ public class AndrasiaAutomation extends JavaPlugin {
                 if(args[0].equalsIgnoreCase("reload")){
                     return true;
                     //loadConfig();
-                   //sender.sendMessage("§aReloaded.");
+                    //sender.sendMessage("§aReloaded.");
                 }
             }
             if(args.length == 2){

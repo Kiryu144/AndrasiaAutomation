@@ -1,4 +1,4 @@
-package net.andrasia.kiryu144.andrasiaautomation.external;
+package net.andrasia.kiryu144.andrasiaautomation.lib;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;

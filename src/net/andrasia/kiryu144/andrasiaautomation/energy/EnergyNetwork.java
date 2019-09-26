@@ -29,6 +29,10 @@ public class EnergyNetwork implements ConfigurationSerializable {
         this.energy = Math.min(energy, LIMIT);
     }
 
+    public void addEnergy(double energy){
+        setEnergy(getEnergy() + energy);
+    }
+
     public UUID getUniqueId() {
         return uuid;
     }

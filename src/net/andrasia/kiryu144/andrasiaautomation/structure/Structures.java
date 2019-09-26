@@ -11,6 +11,7 @@ import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -22,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 public class Structures implements Listener {
     protected HashMap<String, Structure> structureID;
@@ -54,14 +56,14 @@ public class Structures implements Listener {
         return structureID.get(id);
     }
 
-    public void addStructureInstance(Location location, Structure structure, CommandSender sender){
+    public void addStructureInstance(Location location, Structure structure, Player placer){
         // A structure was built
         StructureInstance instance = null;
         try {
-            instance = structure.getStructureInstanceClass().getConstructor(Location.class, Structure.class).newInstance(location, structure);
+            instance = structure.getStructureInstanceClass().getConstructor(Location.class, Structure.class, UUID.class).newInstance(location, structure, placer.getUniqueId());
             instance.onInit(structure.getStructureInstanceInitData());
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            sender.sendMessage("§cUnable to initialize instance! Please report to an Administrator!");
+            placer.sendMessage("§cUnable to initialize instance! Please report to an Administrator!");
             e.printStackTrace();
             return;
         }
@@ -79,9 +81,23 @@ public class Structures implements Listener {
         try {
             save(instance);
         } catch (IOException ex) {
-            sender.sendMessage("§cUnable to save to config! Please report to an Administrator!");
+            placer.sendMessage("§cUnable to save to config! Please report to an Administrator!");
             ex.printStackTrace();
         }
+    }
+
+    public void addStructureInstance(StructureInstance instance){
+        Structure structure = instance.getStructure();
+        instance.onInit(structure.getStructureInstanceInitData());
+        structureInstanceLocationMap.put(instance.getLocation(), instance);
+
+        for(FixedSize3DArray<StructureBlock>.Iterator it = structure.getBlocks().iterator(); it.hasNext(); ){
+            StructureBlock structureBlock = it.next();
+            Location loc = instance.getLocation().clone().add(it.toVector()).subtract(structure.getCenterOffset());
+            structureInstanceBlockMap.put(loc, instance);
+        }
+
+        structureInstances.add(instance);
     }
 
     protected File getInstanceFolder() {
@@ -112,7 +128,7 @@ public class Structures implements Listener {
             if(file.isFile() && file.getName().endsWith(".yml")){
                 try {
                     StructureInstance instance = load(file);
-                    addStructureInstance(instance.getLocation(), instance.getStructure(), Bukkit.getConsoleSender());
+                    addStructureInstance(instance);
                 } catch (IOException e) {
                     AndrasiaAutomation.instance.getLogger().severe(String.format("Unable to load '%s'", file.getName()));
                     e.printStackTrace();
