@@ -79,6 +79,7 @@ public class StructureGeneratorInstance extends StructureInstance {
                             double fuel = getEnergyFromMaterial(itemStack.getType());
                             buffer += fuel;
                             itemStack.setAmount(itemStack.getAmount() - 1);
+                            break;
                         }
                     }
                 }
