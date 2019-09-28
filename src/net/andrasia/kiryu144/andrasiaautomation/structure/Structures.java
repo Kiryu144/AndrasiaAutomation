@@ -7,6 +7,7 @@ import net.andrasia.kiryu144.andrasiaautomation.util.FixedSize3DArray;
 import net.andrasia.kiryu144.andrasiaautomation.util.LocationMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -16,6 +17,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
@@ -151,9 +153,18 @@ public class Structures implements Listener {
     private void onBlockPlace(BlockPlaceEvent e){
         if(e.getBlock().getType().equals(AndrasiaAutomation.PRIMARY_BLOCK)){
             Structure structure = getStructureAtBlock(e.getBlock());
-            if(structure != null){
-                addStructureInstance(e.getBlock().getLocation(), structure, e.getPlayer());
-                e.getPlayer().sendMessage(String.format("§2Successfully created §6%s", structure.getName()));
+            Structure structureInItem = AndrasiaAutomation.items.getStructureFromItem(e.getItemInHand());
+            if(structure != null && structureInItem != null){
+                if(structureInItem.getId().equalsIgnoreCase(structure.getId())){
+                    addStructureInstance(e.getBlock().getLocation(), structure, e.getPlayer());
+                    e.getPlayer().sendMessage(String.format("§2Successfully created §6%s", structure.getName()));
+                }else{
+                    e.getPlayer().sendMessage("§cInvalid machine block!");
+                    e.setCancelled(true);
+                }
+            }else if(structureInItem != null){
+                e.setCancelled(true); //< Cancel to prevent placement
+                e.getPlayer().sendMessage("§cYou cannot place this block anywhere except in a structure!");
             }
         }
     }
@@ -174,10 +185,15 @@ public class Structures implements Listener {
             }
             structureInstanceLocationMap.remove(instance.getLocation());
             structureInstances.remove(instance);
-
+            instance.getLocation().getBlock().setType(Material.AIR);
 
             boolean success = getFileForStructureInstance(instance).delete();
             if(success){
+                if(e.getBlock().getType().equals(AndrasiaAutomation.PRIMARY_BLOCK)){
+                    e.setDropItems(false);
+                }
+
+                e.getPlayer().getWorld().dropItem(e.getBlock().getLocation().clone().add(0.5, 0.5, 0.5), AndrasiaAutomation.items.getItemForStructure(structure));
                 e.getPlayer().sendMessage(String.format("§6%s §cis now broken.", instance.getStructure().getName()));
             }else{
                 e.getPlayer().sendMessage("§cUnable to delete config! Please report to an Administrator!");

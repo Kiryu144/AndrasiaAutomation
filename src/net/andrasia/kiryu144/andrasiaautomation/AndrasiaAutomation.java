@@ -7,6 +7,7 @@ import com.sk89q.worldedit.world.World;
 import net.andrasia.kiryu144.andrasiaautomation.energy.Energy;
 import net.andrasia.kiryu144.andrasiaautomation.energy.EnergyNetwork;
 import net.andrasia.kiryu144.andrasiaautomation.structure.Structure;
+import net.andrasia.kiryu144.andrasiaautomation.structure.StructureItems;
 import net.andrasia.kiryu144.andrasiaautomation.structure.StructureParser;
 import net.andrasia.kiryu144.andrasiaautomation.structure.Structures;
 import net.andrasia.kiryu144.andrasiaautomation.structure.block.MultiStructureBlock;
@@ -33,6 +34,7 @@ public class AndrasiaAutomation extends JavaPlugin {
     public static Material PRIMARY_BLOCK = Material.EMERALD_BLOCK;
 
     public static Structures structures;
+    public static StructureItems items;
     public static Energy energy;
 
     @Override
@@ -43,6 +45,7 @@ public class AndrasiaAutomation extends JavaPlugin {
         registerSerializedClasses();
 
         structures = new Structures();
+        items = new StructureItems();
         energy = new Energy();
 
         Bukkit.getPluginManager().registerEvents(structures, this);
@@ -90,6 +93,10 @@ public class AndrasiaAutomation extends JavaPlugin {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(command.getName().equalsIgnoreCase("automation")){
+            if(!sender.isOp()){
+                return false;
+            }
+
             if(args.length == 1){
                 if(args[0].equalsIgnoreCase("reload")){
                     return true;
@@ -124,6 +131,8 @@ public class AndrasiaAutomation extends JavaPlugin {
                     return true;
                 }else if(args[0].equalsIgnoreCase("energy") && args[1].equalsIgnoreCase("get")){
                     sender.sendMessage(String.format("Energy level: %f", energy.getNetworkFromPlayer(player.getUniqueId()).getEnergy()));
+                }else if(args[0].equalsIgnoreCase("get")){
+                    player.getInventory().addItem(items.getItemForStructure(structures.getStructure(args[1])));
                 }
             }
 
