@@ -77,7 +77,7 @@ public class StructureVoidMinerInstance extends StructureInstance{
         if(!isSleeping()){
             if(network.getEnergy() < energyPerTick){
                 // Not enough energy
-                laser.stop();
+                //laser.stop();
                 sleepForTicks(20);
             }else{
                 laser.start(AndrasiaAutomation.instance);

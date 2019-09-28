@@ -16,6 +16,7 @@ import java.util.UUID;
 public class StructureGeneratorInstance extends StructureInstance {
     // Serialized in structure
     protected double energyPerTick;
+    protected double efficiency;
 
     // Serialized in instance
     protected double buffer;
@@ -33,6 +34,7 @@ public class StructureGeneratorInstance extends StructureInstance {
         switch (material){
             case CHARCOAL:
             case COAL: return 1600;
+            case COAL_BLOCK: return 16000;
 
         }
         return 0;
@@ -49,6 +51,7 @@ public class StructureGeneratorInstance extends StructureInstance {
     public void onInit(Map<String, Object> structureSpecific) {
         super.onInit(structureSpecific);
         energyPerTick = (double) structureSpecific.get("energy_per_tick");
+        efficiency = (double) structureSpecific.get("efficiency");
     }
 
     @Override
@@ -76,7 +79,7 @@ public class StructureGeneratorInstance extends StructureInstance {
                     Chest chest = (Chest) block.getState();
                     for(ItemStack itemStack : chest.getInventory()){
                         if(itemStack != null){
-                            double fuel = getEnergyFromMaterial(itemStack.getType());
+                            double fuel = getEnergyFromMaterial(itemStack.getType()) * efficiency;
                             buffer += fuel;
                             itemStack.setAmount(itemStack.getAmount() - 1);
                             break;
