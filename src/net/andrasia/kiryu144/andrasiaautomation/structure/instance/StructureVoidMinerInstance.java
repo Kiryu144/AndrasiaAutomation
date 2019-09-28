@@ -69,6 +69,11 @@ public class StructureVoidMinerInstance extends StructureInstance{
     }
 
     @Override
+    public void onReload() {
+        laser.stop();
+    }
+
+    @Override
     public void tick() {
         super.tick();
         EnergyNetwork network = getEnergyNetwork();

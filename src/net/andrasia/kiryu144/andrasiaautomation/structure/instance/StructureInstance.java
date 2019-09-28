@@ -79,4 +79,7 @@ public class StructureInstance implements ConfigurationSerializable {
         }
     }
 
+    public void onReload() {
+
+    }
 }

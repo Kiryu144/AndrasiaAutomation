@@ -78,6 +78,7 @@ public class AndrasiaAutomation extends JavaPlugin {
     public void loadConfig() {
         saveResource("config.yml", false);
         super.reloadConfig();
+        structures.clearStructures();
         for(String structureName : getConfig().getStringList("structures")){
             File file = new File(getDataFolder() + "/structures/" + structureName + ".yml");
             try {
@@ -99,6 +100,9 @@ public class AndrasiaAutomation extends JavaPlugin {
 
             if(args.length == 1){
                 if(args[0].equalsIgnoreCase("reload")){
+                    loadConfig();
+                    structures.loadAll();
+                    sender.sendMessage("Reloaded.");
                     return true;
                     //loadConfig();
                     //sender.sendMessage("§aReloaded.");

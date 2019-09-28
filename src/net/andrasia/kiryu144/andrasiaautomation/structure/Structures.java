@@ -40,6 +40,10 @@ public class Structures implements Listener {
         structureInstances = new HashSet<>();
     }
 
+    public void clearStructures() {
+        structureID.clear();
+    }
+
     public void addStructure(Structure structure){
         structureID.put(structure.getId(), structure);
     }
@@ -125,6 +129,14 @@ public class Structures implements Listener {
     }
 
     public void loadAll(){
+        for(StructureInstance structureInstance : structureInstances){
+            structureInstance.onReload();
+        }
+
+        structureInstanceLocationMap = new LocationMap<>();
+        structureInstanceBlockMap = new LocationMap<>();
+        structureInstances = new HashSet<>();
+
         getInstanceFolder().mkdirs();
         for(File file : getInstanceFolder().listFiles()){
             if(file.isFile() && file.getName().endsWith(".yml")){
